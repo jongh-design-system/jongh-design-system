@@ -6,5 +6,6 @@ export default defineConfig({
   clean: true,
   sourcemap: false,
   minify: false,
+  dts: true,
   external: ["@pandacss/dev"],
 })
