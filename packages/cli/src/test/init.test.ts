@@ -3,7 +3,7 @@ import path from "path"
 import fs from "fs-extra"
 import { checkJsonInit } from "../init/utils/checkJsonInit"
 import { checkPandaInit } from "../init/utils/checkPandaInit"
-import { getTsConfigAlias } from "../init/utils/directoryUtils"
+import { getTsConfigAlias } from "../common/utils/directoryUtils"
 import { init } from "../init"
 
 const TS_CONFIG = {
