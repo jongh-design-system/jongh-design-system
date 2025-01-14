@@ -59,7 +59,7 @@ export const addCommand = new Command()
     const { outdir } = await resolvePandaConfig(config)
     //최종 경로
 
-    const _resolvedPath = configSchema.schema.parse({
+    configSchema.schema.parse({
       utils: resolveImport(components_json.utils, tsconfig),
       components: resolveImport(components_json.components, tsconfig),
       hooks: resolveImport(components_json.hooks, tsconfig),
