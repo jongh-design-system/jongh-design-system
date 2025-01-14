@@ -3,6 +3,15 @@
 import { Command } from "commander"
 import path from "path"
 import { z } from "zod"
+import fs from "fs-extra"
+
+import { loadComponentConfig, loadTSConfig } from "./utils/config"
+import {
+  getPandacssConfigFile,
+  resolvePandaConfig,
+} from "../common/utils/directoryUtils"
+import { resolveImport } from "./utils/resolveImport"
+import { configSchema } from "../common/types"
 
 const addSchema = z.object({
   components: z.array(z.string()).optional(),
@@ -28,6 +37,36 @@ export const addCommand = new Command()
       cwd: path.resolve(opts.cwd),
       ...opts,
     })
+
+    //1. components.json 파일을 읽어온다
+    const components_json = await loadComponentConfig(options.cwd)
+
+    //2. tsconfig.json 파일을 읽어온다
+
+    const tsconfig = await loadTSConfig(options.cwd)
+
+    //3. panda.config.* 파일을 읽어온다
+    const PandaConfigPath = await getPandacssConfigFile(options.cwd)
+
+    if (!PandaConfigPath) {
+      throw new Error("panda.config.* file not found")
+    }
+    const config = await fs.readFile(
+      path.resolve(options.cwd, PandaConfigPath),
+      "utf-8",
+    )
+
+    const { outdir } = await resolvePandaConfig(config)
+    //최종 경로
+
+    const _resolvedPath = configSchema.schema.parse({
+      utils: resolveImport(components_json.utils, tsconfig),
+      components: resolveImport(components_json.components, tsconfig),
+      hooks: resolveImport(components_json.hooks, tsconfig),
+      styledsystem: path.join(options.cwd, outdir || "styled-system"),
+    })
+
+    //fetch
     const componentList = options.components?.map(
       (c) => c.charAt(0).toUpperCase() + c.slice(1),
     )
@@ -47,7 +86,6 @@ export const addCommand = new Command()
     results.forEach((result, index) => {
       if (result.status === "fulfilled") {
         console.log(`${componentList[index]} completed successfully`)
-        console.log(result.value)
       }
     })
   })
