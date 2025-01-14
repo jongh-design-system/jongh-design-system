@@ -11,14 +11,14 @@ runs:
       id: playwright-version
 
     - name: Cache Playwright Browsers for Playwright's Version
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         # https://playwright.dev/docs/browsers#managing-browser-binaries
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
         restore-keys: |
           ${{ runner.os }}-playwright-
-      id: playwright-cache
+      id: cache-playwright-browsers
 
     - name: Setup Playwright
       shell: bash
