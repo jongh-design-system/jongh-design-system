@@ -55,17 +55,17 @@ describe("설정 초기화 테스트", () => {
 
   beforeAll(async () => {
     await fs.mkdir(temp, { recursive: true })
-    fs.writeFile(
+    await fs.writeFile(
       path.resolve(temp, "tsconfig.json"),
       JSON.stringify(TS_CONFIG, null, 2),
       "utf-8",
     )
-    fs.writeFile(
+    await fs.writeFile(
       path.resolve(temp, "package.json"),
       JSON.stringify(PACKAGE_JSON, null, 2),
       "utf-8",
     )
-    fs.writeFile(
+    await fs.writeFile(
       path.resolve(temp, "panda.config.ts"),
       PANDA_CONFIG_TS,
       "utf-8",
