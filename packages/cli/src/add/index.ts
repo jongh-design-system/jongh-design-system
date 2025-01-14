@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 
-import { getAbsolutePath } from "./utils/config"
-import * as p from "@clack/prompts"
+import { Command } from "commander"
 
-const main = async () => {
-  try {
-    await getAbsolutePath(process.cwd())
-  } catch (error) {
-    if (error instanceof Error) {
-      p.cancel(error.message)
-      process.exit(1)
-    }
-  }
-}
-
-main()
+export const addCommand = new Command()
+  .name("add")
+  .description("add components")
+  .argument(
+    "[components...]",
+    "the components to add or a url to the component.",
+  )
+  .option(
+    "-c, --cwd <cwd>",
+    "current working directory, default to process.cwd()",
+    process.cwd(),
+  )
