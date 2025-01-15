@@ -18,6 +18,17 @@ const addSchema = z.object({
   cwd: z.string(),
 })
 
+const fileSchema = z.object({
+  name: z.string(),
+  content: z.string(),
+})
+
+const registrySchema = z.object({
+  name: z.string(),
+  dependencies: z.array(z.string()).optional(),
+  files: z.array(fileSchema).optional(),
+})
+
 const BASE_URL = "http://localhost:3000"
 export const addCommand = new Command()
   .name("add")
@@ -85,6 +96,8 @@ export const addCommand = new Command()
     )
     results.forEach((result, index) => {
       if (result.status === "fulfilled") {
+        const registry = registrySchema.parse(result.value)
+        console.log(registry)
         console.log(`${componentList[index]} completed successfully`)
       }
     })
