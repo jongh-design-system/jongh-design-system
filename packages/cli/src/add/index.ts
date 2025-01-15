@@ -80,12 +80,12 @@ export const addCommand = new Command()
     })
 
     //fetch
-    const componentList = options.components?.map(
-      (c) => c.charAt(0).toUpperCase() + c.slice(1),
-    )
+    const componentList = options.components?.map((c) => c.toLowerCase())
+
     if (!componentList?.length) {
       return
     }
+
     const results = await Promise.allSettled(
       componentList?.map(async (c) => {
         const response = await fetch(`${BASE_URL}/${c}.json`)
@@ -96,6 +96,7 @@ export const addCommand = new Command()
         return data
       }),
     )
+
     results.forEach(async (result, index) => {
       if (result.status === "fulfilled") {
         //1. registry schema check
