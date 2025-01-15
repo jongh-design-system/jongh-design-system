@@ -25,12 +25,14 @@ runs:
       run: |
         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    # - uses: actions/cache@v4
-    #   name: Setup pnpm cache
-    #   id: pnpm-cache
-    #   with:
-    #     path: ${{ env.STORE_PATH }}
-    #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+    - uses: actions/cache@v4
+      name: Setup pnpm cache
+      id: pnpm-cache
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
 
     - name: log cache
       if: ${{steps.pnpm-cache.outputs.cache-hit != 'true'}}
