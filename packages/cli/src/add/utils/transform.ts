@@ -76,7 +76,7 @@ export function transformPreset(
   // recipes 객체에 새로운 속성 추가
   objectLiteral.addPropertyAssignment({
     name: recipeName,
-    initializer: `${recipeName}`,
+    initializer: `${recipeName}Recipe`,
   })
 
   // 변경사항 저장

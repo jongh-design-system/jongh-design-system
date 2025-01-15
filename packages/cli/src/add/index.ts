@@ -128,10 +128,10 @@ export const addCommand = new Command()
             //이 파일의 alias는 component alias / 컴포넌트명 / recipe.ts
             transformPreset(
               path.join(options.cwd, "preset.ts"),
-              `${componentList[index]}Recipe`,
+              `${componentList[index]}`,
               path.join(
                 components_json.components,
-                componentList[index],
+                `${componentList[index]}`,
                 "recipe",
               ),
             )
