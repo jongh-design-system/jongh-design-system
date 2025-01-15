@@ -18,7 +18,7 @@ const addSchema = z.object({
   cwd: z.string(),
 })
 
-const BASE_URL = "https://whdgur.shop"
+const BASE_URL = "http://localhost:3000"
 export const addCommand = new Command()
   .name("add")
   .description("add components")
@@ -60,9 +60,9 @@ export const addCommand = new Command()
     //최종 경로
 
     configSchema.schema.parse({
-      utils: resolveImport(components_json.utils, tsconfig),
-      components: resolveImport(components_json.components, tsconfig),
-      hooks: resolveImport(components_json.hooks, tsconfig),
+      utils: await resolveImport(components_json.utils, tsconfig),
+      components: await resolveImport(components_json.components, tsconfig),
+      hooks: await resolveImport(components_json.hooks, tsconfig),
       styledsystem: path.join(options.cwd, outdir || "styled-system"),
     })
 
