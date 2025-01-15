@@ -37,6 +37,7 @@ runs:
     - name: log cache
       if: ${{steps.pnpm-cache.outputs.cache-hit != 'true'}}
       run: echo "Cache not found"
+      shell: bash
 
     - name: Install dependencies
       run: pnpm install
