@@ -4,6 +4,7 @@ import { Command } from "commander"
 import path from "path"
 import { z } from "zod"
 import fs from "fs-extra"
+import { confirm } from "@clack/prompts"
 
 import { loadComponentConfig, loadTSConfig } from "./utils/config"
 import {
@@ -70,7 +71,7 @@ export const addCommand = new Command()
     const { outdir } = await resolvePandaConfig(config)
     //최종 경로
 
-    configSchema.schema.parse({
+    const paths = configSchema.schema.parse({
       utils: await resolveImport(components_json.utils, tsconfig),
       components: await resolveImport(components_json.components, tsconfig),
       hooks: await resolveImport(components_json.hooks, tsconfig),
@@ -94,11 +95,27 @@ export const addCommand = new Command()
         return data
       }),
     )
-    results.forEach((result, index) => {
+    results.forEach(async (result, index) => {
       if (result.status === "fulfilled") {
+        //1. registry schema check
         const registry = registrySchema.parse(result.value)
         console.log(registry)
         console.log(`${componentList[index]} completed successfully`)
+        //2.폴더를 하나 생성해야 함 -> 폴더이름은 reigstry.name
+        const isExists = await fs.pathExists(
+          path.resolve(paths.components, componentList[index]),
+        )
+        if (isExists) {
+          const isAgreed = await confirm({
+            message: `Component ${componentList[index]} already exists. Do you want to overwrite it?`,
+          })
+          if (!isAgreed) {
+            return
+          }
+        }
+        fs.ensureDir(path.resolve(paths.components, componentList[index]))
       }
     })
   })
+
+//
