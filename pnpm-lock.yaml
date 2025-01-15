@@ -20,6 +20,9 @@ importers:
       '@commitlint/cz-commitlint':
         specifier: ^19.5.0
         version: 19.5.0(@types/node@22.8.6)(commitizen@4.3.1(@types/node@22.8.6)(typescript@5.6.3))(inquirer@9.3.7)(typescript@5.6.3)
+      '@faker-js/faker':
+        specifier: ^9.3.0
+        version: 9.3.0
       '@pandacss/dev':
         specifier: ^0.51.1
         version: 0.51.1(typescript@5.6.3)
@@ -1419,6 +1422,10 @@ packages:
   '@eslint/js@8.57.1':
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+
+  '@faker-js/faker@9.3.0':
+    resolution: {integrity: sha512-r0tJ3ZOkMd9xsu3VRfqlFR6cz0V/jFYRswAIpC+m/DIfAUXq7g8N7wTAlhSANySXYGKzGryfDXwtwsY8TxEIDw==}
+    engines: {node: '>=18.0.0', npm: '>=9.0.0'}
 
   '@floating-ui/core@1.6.8':
     resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
@@ -8166,6 +8173,8 @@ snapshots:
       - supports-color
 
   '@eslint/js@8.57.1': {}
+
+  '@faker-js/faker@9.3.0': {}
 
   '@floating-ui/core@1.6.8':
     dependencies:
