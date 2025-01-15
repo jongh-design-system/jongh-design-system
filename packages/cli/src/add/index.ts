@@ -14,6 +14,9 @@ import {
 import { resolveImport } from "./utils/resolveImport"
 import { configSchema } from "../common/types"
 import { transformPreset, transformImports } from "./utils/transform"
+import { execa } from "execa"
+import { detect } from "package-manager-detector"
+import { getPackageManagerRunner } from "../common/utils/packageManager"
 
 const addSchema = z.object({
   components: z.array(z.string()).optional(),
@@ -139,6 +142,19 @@ export const addCommand = new Command()
 
           fs.writeFileSync(path.join(src, file.name), convertedContent)
         })
+        const pm = await detect({ cwd: options.cwd })
+        if (!pm) {
+          throw new Error("Could not detect package manager")
+        }
+        if (registry.dependencies?.length) {
+          await execa(pm.name, [
+            pm.name === "npm" ? "install" : "add",
+            ...registry.dependencies,
+          ])
+        }
+        const runner = await getPackageManagerRunner(options.cwd)
+        const [name, ...cmd] = runner.split(" ")
+        execa(name, [...cmd, "panda", "codegen"])
       }
       console.log(`${componentList[index]} completed successfully`)
     })
