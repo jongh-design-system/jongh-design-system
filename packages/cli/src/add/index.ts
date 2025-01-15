@@ -13,6 +13,7 @@ import {
 } from "../common/utils/directoryUtils"
 import { resolveImport } from "./utils/resolveImport"
 import { configSchema } from "../common/types"
+import { transformPreset, transformImports } from "./utils/transform"
 
 const addSchema = z.object({
   components: z.array(z.string()).optional(),
@@ -99,12 +100,10 @@ export const addCommand = new Command()
       if (result.status === "fulfilled") {
         //1. registry schema check
         const registry = registrySchema.parse(result.value)
-        console.log(registry)
-        console.log(`${componentList[index]} completed successfully`)
         //2.폴더를 하나 생성해야 함 -> 폴더이름은 reigstry.name
-        const isExists = await fs.pathExists(
-          path.resolve(paths.components, componentList[index]),
-        )
+        const src = path.join(paths.components, componentList[index])
+        const isExists = await fs.pathExists(src)
+
         if (isExists) {
           const isAgreed = await confirm({
             message: `Component ${componentList[index]} already exists. Do you want to overwrite it?`,
@@ -113,9 +112,33 @@ export const addCommand = new Command()
             return
           }
         }
-        fs.ensureDir(path.resolve(paths.components, componentList[index]))
+        //이후부터는 파일을 overwrite
+        await fs.ensureDir(path.resolve(src))
+
+        registry.files?.forEach((file) => {
+          const convertedContent = transformImports(
+            file.content,
+            components_json,
+          )
+
+          if (file.name === "recipe.ts") {
+            //현재 export하고있는 recipe 변수명은 omponentList[index]+Recipe
+            //이걸 preset.ts에 넣어줘야 함 - 현재는 이 파일이 root에 있다고 가정
+            //이 파일의 alias는 component alias / 컴포넌트명 / recipe.ts
+            transformPreset(
+              path.join(options.cwd, "preset.ts"),
+              `${componentList[index]}Recipe`,
+              path.join(
+                components_json.components,
+                componentList[index],
+                "recipe",
+              ),
+            )
+          }
+
+          fs.writeFileSync(path.join(src, file.name), convertedContent)
+        })
       }
+      console.log(`${componentList[index]} completed successfully`)
     })
   })
-
-//
