@@ -70,7 +70,7 @@ export function transformPreset(
   // 새로운 import 문 추가
   sourceFile.addImportDeclaration({
     moduleSpecifier: recipePath,
-    namedImports: [{ name: `${recipeName}` }],
+    namedImports: [{ name: `${recipeName}Recipe` }],
   })
 
   // recipes 객체에 새로운 속성 추가
