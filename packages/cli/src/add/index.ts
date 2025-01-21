@@ -12,7 +12,7 @@ import {
   resolvePandaConfig,
 } from "../common/utils/directoryUtils"
 import { resolveImport } from "./utils/resolveImport"
-import { configSchema } from "../common/types"
+import { configSchema, registrySchema } from "../common/types"
 import { transformPreset, transformImports } from "./utils/transform"
 import { execa } from "execa"
 import { detect } from "package-manager-detector"
@@ -21,17 +21,6 @@ import { getPackageManagerRunner } from "../common/utils/packageManager"
 const addSchema = z.object({
   components: z.array(z.string()).optional(),
   cwd: z.string(),
-})
-
-const fileSchema = z.object({
-  name: z.string(),
-  content: z.string(),
-})
-
-const registrySchema = z.object({
-  name: z.string(),
-  dependencies: z.array(z.string()).optional(),
-  files: z.array(fileSchema).optional(),
 })
 
 const BASE_URL = "http://localhost:3000"
