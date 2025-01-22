@@ -60,55 +60,66 @@ export async function handleRegistryCommand(
   }
 }
 
+const subDirectorys = ["ui", "hooks", "utils"] as const
+
 export async function createRegistryFile(component: string) {
   console.log(`📁 ${component} 컴포넌트 경로를 확인합니다...`)
   const componentPath = path.join(UI_WORKSPACE_PATH, `./${component}`)
-  const files = await fs.readdir(componentPath)
+  // const files = await fs.readdir(componentPath)
+  //이제 여기에서 ui / hooks / utils 등등을 구분해서 처리해야됨
+  // files.forEach((file) => {
+  //   if (file !== `index.tsx` && file !== `recipe.ts`) {
+  //     console.error(
+  //       `⚠️ ${component} 파일 형식이 올바르지 않습니다. ${file}은 유효하지 않은 파일입니다.`,
+  //     )
+  //     process.exit(1)
+  //   }
+  // })
 
-  files.forEach((file) => {
-    if (file !== `index.tsx` && file !== `recipe.ts`) {
-      console.error(
-        `⚠️ ${component} 파일 형식이 올바르지 않습니다. ${file}은 유효하지 않은 파일입니다.`,
-      )
-      process.exit(1)
-    }
-  })
-
-  console.log(`📖 ${component} 파일 내용을 읽어들입니다...`)
-  const fileContents: { name: string; content: string }[] = []
+  const fileContents: { name: string; content: string; type: string }[] = []
   const dependencies: string[] = []
 
-  const project = new Project()
-  for (const file of files) {
-    const content = fs.readFileSync(path.join(componentPath, file), "utf-8")
-    fileContents.push({ name: file, content })
-    console.log(`✓ ${file} 파일을 읽었습니다.`)
+  for (const subDirectory of subDirectorys) {
+    const folderPath = path.join(componentPath, subDirectory)
+    const exist = await fs.pathExists(folderPath)
+    if (!exist) {
+      return
+    }
+    const files = await fs.readdir(folderPath)
+
+    const project = new Project()
+    for (const file of files) {
+      const content = await fs.readFile(path.join(folderPath, file), "utf-8")
+      fileContents.push({ name: file, content, type: subDirectory })
+      console.log(`✓ ${file} 파일을 읽었습니다.`)
+
+      const sourceFile = project.addSourceFileAtPath(
+        path.join(folderPath, file),
+      )
+
+      console.log(`🔍 의존성을 분석합니다...`)
+      sourceFile.getImportDeclarations().forEach((importDeclaration) => {
+        const module = importDeclaration.getModuleSpecifier().getLiteralValue()
+        dependencies.push(module)
+      })
+    }
+
+    const fileContent = {
+      name: `${component}`,
+      dependencies: dependencies.filter(
+        (dep) =>
+          !WHITE_LIST.some((w) =>
+            typeof w === "string" ? dep === w : w.test(dep),
+          ),
+      ),
+      files: fileContents,
+    }
+    const stringifiedFileContent = JSON.stringify(fileContent)
+
+    console.log(`💾 Registry 파일을 저장합니다...`)
+    await fs.writeFile(
+      path.join(TARGET_PATH, `${component.toLowerCase()}.json`),
+      stringifiedFileContent,
+    )
   }
-  const sourceFile = project.addSourceFileAtPath(
-    path.join(componentPath, "index.tsx"),
-  )
-
-  console.log(`🔍 의존성을 분석합니다...`)
-  sourceFile.getImportDeclarations().forEach((importDeclaration) => {
-    const module = importDeclaration.getModuleSpecifier().getLiteralValue()
-    dependencies.push(module)
-  })
-
-  const fileContent = {
-    name: `${component}`,
-    dependencies: dependencies.filter(
-      (dep) =>
-        !WHITE_LIST.some((w) =>
-          typeof w === "string" ? dep === w : w.test(dep),
-        ),
-    ),
-    files: fileContents,
-  }
-  const stringifiedFileContent = JSON.stringify(fileContent)
-
-  console.log(`💾 Registry 파일을 저장합니다...`)
-  await fs.writeFile(
-    path.join(TARGET_PATH, `${component.toLowerCase()}.json`),
-    stringifiedFileContent,
-  )
 }
