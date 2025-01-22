@@ -4,6 +4,7 @@ import fs from "fs-extra"
 import { Project } from "ts-morph"
 import path, { dirname } from "path"
 import { fileURLToPath } from "url"
+import { subDirectories } from "./common/types"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -60,8 +61,6 @@ export async function handleRegistryCommand(
   }
 }
 
-const subDirectorys = ["ui", "hooks", "utils"] as const
-
 export async function createRegistryFile(component: string) {
   console.log(`📁 ${component} 컴포넌트 경로를 확인합니다...`)
   const componentPath = path.join(UI_WORKSPACE_PATH, `./${component}`)
@@ -79,7 +78,7 @@ export async function createRegistryFile(component: string) {
   const fileContents: { name: string; content: string; type: string }[] = []
   const dependencies: string[] = []
 
-  for (const subDirectory of subDirectorys) {
+  for (const subDirectory of subDirectories) {
     const folderPath = path.join(componentPath, subDirectory)
     const exist = await fs.pathExists(folderPath)
     if (!exist) {

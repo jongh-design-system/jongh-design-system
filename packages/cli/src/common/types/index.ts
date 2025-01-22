@@ -14,9 +14,12 @@ export const configSchema = {
 
 export type ConfigType = z.infer<(typeof configSchema)["schema"]>
 
+export const subDirectories = ["ui", "hooks", "utils"] as const
+
 export const fileSchema = z.object({
   name: z.string(),
   content: z.string(),
+  type: z.enum(subDirectories),
 })
 
 export const registrySchema = z.object({
