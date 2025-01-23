@@ -6,7 +6,7 @@ import { confirm } from "@clack/prompts"
 
 import { loadComponentConfig, loadTSConfig } from "./utils/config"
 import {
-  getPandacssConfigFile,
+  getPandacssConfigPath,
   resolvePandaConfig,
 } from "../common/utils/directoryUtils"
 import { resolveImport } from "./utils/resolveImport"
@@ -50,7 +50,7 @@ export const addCommand = new Command()
 
       const tsconfig = await loadTSConfig(options.cwd)
       //3. panda.config.* 파일을 읽어온다
-      const PandaConfigPath = await getPandacssConfigFile(options.cwd)
+      const PandaConfigPath = await getPandacssConfigPath(options.cwd)
 
       if (!PandaConfigPath) {
         throw new Error("panda.config.* file not found")

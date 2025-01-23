@@ -85,10 +85,8 @@ const PANDA_CONFIG_TS = `export default defineConfig({
 
 describe("add test", () => {
   const temp = path.join(__dirname, "../temp-add")
-
   beforeAll(async () => {
     await fs.mkdir(temp, { recursive: true })
-
     await fs.writeFile(
       path.resolve(temp, "tsconfig.json"),
       JSON.stringify(TS_CONFIG, null, 2),
@@ -123,7 +121,6 @@ describe("add test", () => {
           json: () => Promise.resolve(BUTTON_JSON),
         }) as Promise<Response>,
     )
-    process.chdir(temp)
     addCommand.parse(["add", "button", "-c", temp])
   })
 })
