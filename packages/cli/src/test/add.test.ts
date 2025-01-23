@@ -1,7 +1,7 @@
 import path from "path"
 import { test, vi, describe, beforeAll, afterAll } from "vitest"
 import fs from "fs-extra"
-import { execaCommandSync } from "execa"
+import { addCommand } from "../add"
 
 const BUTTON_JSON = `{
   name: "button",
@@ -82,7 +82,6 @@ const PANDA_CONFIG_TS = `export default defineConfig({
   outdir: "styled-system",
 })
 `
-const CLI_PATH = path.join(__dirname, "..")
 
 describe("add test", () => {
   const temp = path.join(__dirname, "../temp-add")
@@ -125,7 +124,6 @@ describe("add test", () => {
         }) as Promise<Response>,
     )
     process.chdir(temp)
-    execaCommandSync(`npx tsx ${CLI_PATH} add button`)
-    path.join(temp)
+    addCommand.parse(["add", "button", "-c", temp])
   })
 })
