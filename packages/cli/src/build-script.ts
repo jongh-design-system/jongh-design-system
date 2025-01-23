@@ -24,8 +24,10 @@ const WHITE_LIST = [
   /^next\/.+/, // next/image, next/link 등
   "react", // react, react-dom, @types/react 등
   "react-dom",
-  /^@styled-system\/.+/,
+  /^@styled-system\/.+/, //내부 패키지들
   /^@utils\/.+/,
+  /^@components\/.+/,
+  /^@hooks\/.+/,
 ]
 
 export const registry = program
