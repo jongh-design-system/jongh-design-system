@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { Command } from "commander"
 import path from "path"
 import { z } from "zod"
@@ -77,7 +75,6 @@ export const addCommand = new Command()
     if (!componentList?.length) {
       return
     }
-
     const results = await Promise.allSettled(
       componentList?.map(async (c) => {
         const response = await fetch(`${BASE_URL}/${c}.json`)
@@ -115,7 +112,7 @@ export const addCommand = new Command()
           )
 
           if (file.name === "recipe.ts") {
-            //현재 export하고있는 recipe 변수명은 omponentList[index]+Recipe
+            //현재 export하고있는 recipe 변수명은 componentList[index]+Recipe
             //이걸 preset.ts에 넣어줘야 함 - 현재는 이 파일이 root에 있다고 가정
             //이 파일의 alias는 component alias / 컴포넌트명 / recipe.ts
             transformPreset(
@@ -128,9 +125,17 @@ export const addCommand = new Command()
               ),
             )
           }
-
-          fs.writeFileSync(path.join(src, file.name), convertedContent)
+          if (file.type === "ui") {
+            fs.writeFileSync(path.join(src, file.name), convertedContent)
+          } else {
+            fs.outputFileSync(
+              path.join(paths[file.type], file.name),
+              convertedContent,
+              "utf-8",
+            )
+          }
         })
+
         const pm = await detect({ cwd: options.cwd })
         if (!pm) {
           throw new Error("Could not detect package manager")
