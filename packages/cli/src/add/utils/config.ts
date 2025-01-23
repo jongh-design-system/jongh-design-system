@@ -4,18 +4,28 @@ import path from "path"
 import { loadConfig } from "tsconfig-paths"
 import { resolveImport } from "./resolveImport"
 import { type ConfigLoaderSuccessResult } from "tsconfig-paths"
+import { ConfigError } from "../../common/error"
 
-// 1. Config 파일 읽기 전용
-export async function loadComponentConfig(cwd: string): Promise<ConfigType> {
-  const configFile = await fs.readJson(path.resolve(cwd, configSchema.fileName))
-  return configSchema.schema.parse(configFile)
+// components.json 파일 읽기 전용
+export function loadComponentConfig(cwd: string) {
+  try {
+    const configFile = fs.readJsonSync(path.resolve(cwd, configSchema.fileName))
+    return configFile
+  } catch (e) {
+    throw new ConfigError(`cannot find components.json relative to ${cwd}`, {
+      cause: e,
+    })
+  }
 }
 
-// 2. TSConfig 읽기 전용
+// tsConfig 읽기 전용
+// loadConfig는 현재 디렉토리에 tsconfig가 없으면 경로를 내려가서 tsconfig를 찾는걸로 보임
 export async function loadTSConfig(cwd: string) {
   const tsconfig = loadConfig(cwd)
   if (tsconfig.resultType === "failed") {
-    throw new Error("tsconfig file not found")
+    throw new ConfigError(`cannot find tsconfig.json relative to ${cwd}`, {
+      cause: tsconfig.message,
+    })
   }
   return tsconfig
 }
@@ -34,7 +44,7 @@ export async function resolveAllPaths(
 }
 
 export async function getAbsolutePath(cwd: string) {
-  const config = await loadComponentConfig(cwd)
+  const config = loadComponentConfig(cwd)
   const tsconfig = await loadTSConfig(cwd)
   return resolveAllPaths(config, tsconfig)
 }
