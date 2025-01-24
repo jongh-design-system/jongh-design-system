@@ -1,6 +1,6 @@
 import { Command } from "commander"
 import path from "path"
-import { z } from "zod"
+import { z, ZodError } from "zod"
 import fs from "fs-extra"
 import { confirm } from "@clack/prompts"
 
@@ -76,6 +76,7 @@ export const addCommand = new Command()
       if (!componentList?.length) {
         return
       }
+
       const results = await Promise.allSettled(
         componentList?.map(async (c) => {
           const response = await fetch(`${BASE_URL}/${c}.json`)
@@ -88,14 +89,17 @@ export const addCommand = new Command()
       )
 
       results.forEach(async (result, index) => {
-        if (result.status === "fulfilled") {
+        if (result.status === "rejected") {
+          console.log(`cannot fetch ${componentList[index]}`, result.reason)
+          return
+        }
+        try {
           //1. registry schema check
           const registry = registrySchema.parse(result.value)
           //2.폴더를 하나 생성해야 함 -> 폴더이름은 reigstry.name
           const src = path.join(paths.components, componentList[index])
-          const isExists = await fs.pathExists(src)
 
-          if (isExists) {
+          if (fs.pathExistsSync(src)) {
             const isAgreed = await confirm({
               message: `Component ${componentList[index]} already exists. Do you want to overwrite it?`,
             })
@@ -103,15 +107,14 @@ export const addCommand = new Command()
               return
             }
           }
-          //이후부터는 파일을 overwrite
-          await fs.ensureDir(path.resolve(src))
 
           registry.files?.forEach((file) => {
+            //import문을 경로를 반영하여 변경하기
             const convertedContent = transformImports(
               file.content,
               components_json,
             )
-
+            //TODO: file의 타입에 따라 변경하기
             if (file.name === "recipe.ts") {
               //현재 export하고있는 recipe 변수명은 componentList[index]+Recipe
               //이걸 preset.ts에 넣어줘야 함 - 현재는 이 파일이 root에 있다고 가정
@@ -126,8 +129,9 @@ export const addCommand = new Command()
                 ),
               )
             }
+
             if (file.type === "ui") {
-              fs.writeFileSync(path.join(src, file.name), convertedContent)
+              fs.outputFileSync(path.join(src, file.name), convertedContent)
             } else {
               fs.outputFileSync(
                 path.join(paths[file.type], file.name),
@@ -150,10 +154,15 @@ export const addCommand = new Command()
           const runner = await getPackageManagerRunner(options.cwd)
           const [name, ...cmd] = runner.split(" ")
           execa(name, [...cmd, "panda", "codegen"])
+          console.log(`${componentList[index]} completed successfully`)
+        } catch (e) {
+          console.log(e)
         }
-        console.log(`${componentList[index]} completed successfully`)
       })
     } catch (e) {
+      if (e instanceof ZodError) {
+        console.log("invalid Schema")
+      }
       if (e instanceof Error) {
         console.log(e.message, e.cause)
       }
