@@ -59,3 +59,24 @@ export class CommandError extends Error {
     return this.issue.message?.join("\n")
   }
 }
+
+export const ErrorMap = (issue: Issue) => {
+  let message: string
+  switch (issue.code) {
+    case ISSUE_CODE.config_not_found:
+      message = `error occured while config ${issue.configFile}`
+      break
+    case ISSUE_CODE.resolve_path_fail:
+      message = `failed to resolve your path, current ${issue.cwd}`
+      break
+    case ISSUE_CODE.failed_to_fetch: //TODO: statusCode별 에러메시지 필요
+      message = `failed to fetch ${issue.target} [${issue.statusCode}]`
+      break
+    default:
+      message = "error occured"
+  }
+  return new CommandError({
+    ...issue,
+    message: [...(issue.message || ""), message],
+  })
+}
