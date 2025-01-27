@@ -1,6 +1,5 @@
-import { ConfigError } from "../../common/error"
+import { ErrorMap } from "../../common/error"
 import { createMatchPath, type ConfigLoaderSuccessResult } from "tsconfig-paths"
-
 export async function resolveImport(
   importPath: string,
   config: Pick<ConfigLoaderSuccessResult, "absoluteBaseUrl" | "paths">,
@@ -11,8 +10,11 @@ export async function resolveImport(
     () => true,
   )
   if (!match) {
-    throw new ConfigError("cannot resolve your tsconfig import", {
-      cause: "no match found",
+    throw ErrorMap({
+      code: "resolve_path_fail",
+      target: importPath,
+      cwd: process.cwd(),
+      message: ["resolve error"],
     })
   }
   return match

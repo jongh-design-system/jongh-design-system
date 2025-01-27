@@ -4,7 +4,7 @@ import path from "path"
 import { loadConfig } from "tsconfig-paths"
 import { resolveImport } from "./resolveImport"
 import { type ConfigLoaderSuccessResult } from "tsconfig-paths"
-import { ConfigError } from "../../common/error"
+import { ErrorMap } from "../../common/error"
 
 // components.json 파일 읽기 전용
 export function loadComponentConfig(cwd: string) {
@@ -12,8 +12,10 @@ export function loadComponentConfig(cwd: string) {
     const configFile = fs.readJsonSync(path.resolve(cwd, configSchema.fileName))
     return configFile
   } catch (e) {
-    throw new ConfigError(`cannot find components.json relative to ${cwd}`, {
-      cause: e,
+    return ErrorMap({
+      code: "config_not_found",
+      configFile: configSchema.fileName,
+      message: [e instanceof Error ? e.message : ""],
     })
   }
 }
@@ -23,8 +25,10 @@ export function loadComponentConfig(cwd: string) {
 export async function loadTSConfig(cwd: string) {
   const tsconfig = loadConfig(cwd)
   if (tsconfig.resultType === "failed") {
-    throw new ConfigError(`cannot find tsconfig.json relative to ${cwd}`, {
-      cause: tsconfig.message,
+    throw ErrorMap({
+      code: "config_not_found",
+      configFile: "tsconfig.json",
+      message: ["cannot found tsconfig.json"],
     })
   }
   return tsconfig

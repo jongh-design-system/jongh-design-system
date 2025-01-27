@@ -2,7 +2,7 @@ import fg from "fast-glob"
 import fs from "fs-extra"
 import { loadConfig } from "tsconfig-paths"
 import path from "path"
-import { ConfigError } from "../error"
+import { ErrorMap } from "../error"
 
 export function getTsConfigAlias(cwd: string, styledSytemPath: string) {
   const tsConfig = loadConfig(cwd)
@@ -47,14 +47,22 @@ export async function getPandacssConfigPath(cwd: string) {
   try {
     const files = await fg.glob(["panda.config.*"], { cwd, deep: 3 })
     if (!files.length) {
-      throw new ConfigError(`Panda CSS config file not found in ${cwd}`, {
-        cause: "File Not Found",
+      throw ErrorMap({
+        code: "config_not_found",
+        configFile: "panda.config.*",
+        message: ["failed to find panda.config file"],
       })
     }
     return files[0]
   } catch (error) {
-    throw new ConfigError(`Failed to find Panda CSS config file in ${cwd}`, {
-      cause: error,
+    throw ErrorMap({
+      code: "config_not_found",
+      configFile: "panda.config.*",
+      message: [
+        error instanceof Error
+          ? error.message
+          : "unknown error occured finding panda.config",
+      ],
     })
   }
 }
