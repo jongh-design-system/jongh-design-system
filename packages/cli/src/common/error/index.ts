@@ -10,15 +10,11 @@ export const arrayToEnum = <T extends string, U extends [T, ...T[]]>(
   return obj as any
 }
 
-export class ConfigError extends Error {
-  constructor(message: string, { cause }: { cause?: unknown }) {
-    super(message)
-    this.name = "ConfigError"
-    this.cause = cause
-  }
-}
-
-export const ISSUE_CODE = arrayToEnum(["config_not_found", "resolve_path_fail"])
+export const ISSUE_CODE = arrayToEnum([
+  "config_not_found",
+  "resolve_path_fail",
+  "failed_to_fetch",
+])
 
 export const FILE_TYPE = arrayToEnum([
   "components.json",
@@ -28,8 +24,8 @@ export const FILE_TYPE = arrayToEnum([
 ])
 
 export type IssueBase = {
-  path: string[]
-  message?: string | string[]
+  code: keyof typeof ISSUE_CODE
+  message?: string[]
 }
 
 export interface ConfigNotFoundIssue extends IssueBase {
@@ -43,7 +39,13 @@ export interface ResolvePathFailIssue extends IssueBase {
   cwd: string
 }
 
-export type Issue = ResolvePathFailIssue | ConfigNotFoundIssue
+export interface FetchError extends IssueBase {
+  code: typeof ISSUE_CODE.failed_to_fetch
+  target: string
+  statusCode: number
+}
+
+export type Issue = ResolvePathFailIssue | ConfigNotFoundIssue | FetchError
 
 export class CommandError extends Error {
   issue: Issue
@@ -53,7 +55,7 @@ export class CommandError extends Error {
     this.issue = issue
   }
 
-  format() {
-    this.issue //문자열 출력 담당해주면됨
+  get format() {
+    return this.issue.message?.join("\n")
   }
 }
