@@ -56,7 +56,7 @@ export class CommandError extends Error {
   }
 
   get format() {
-    return this.issue.message?.join("\n")
+    return this.issue.code + "\n" + this.issue.message?.join("\n")
   }
 }
 
