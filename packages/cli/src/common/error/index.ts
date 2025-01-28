@@ -39,13 +39,13 @@ export interface ResolvePathFailIssue extends IssueBase {
   cwd: string
 }
 
-export interface FetchError extends IssueBase {
+export interface FetchIssue extends IssueBase {
   code: typeof ISSUE_CODE.failed_to_fetch
   target: string
-  statusCode: number
+  statusCode: number | null
 }
 
-export type Issue = ResolvePathFailIssue | ConfigNotFoundIssue | FetchError
+export type Issue = ResolvePathFailIssue | ConfigNotFoundIssue | FetchIssue
 
 export class CommandError extends Error {
   issue: Issue
