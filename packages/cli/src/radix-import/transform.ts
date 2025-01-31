@@ -39,12 +39,13 @@ const importMap = {
 //기존에는 import {} from "@radix-ui/react-visually-hidden" -> 현재는 import {VisuallyHidden} from 'radix-ui'
 
 export function transform(sourceFile: SourceFile) {
+  const installedPackages: string[] = []
   sourceFile.getImportDeclarations().forEach((importDeclaration) => {
     const moduleName = importDeclaration.getModuleSpecifierValue()
 
     if (moduleName in importMap) {
       let newImportName = importMap[moduleName as keyof typeof importMap]
-
+      installedPackages.push(moduleName)
       const namespaceSpecifiers = importDeclaration.getNamespaceImport() //import * as
       if (namespaceSpecifiers) {
         const prevAsName = namespaceSpecifiers.getText()
@@ -99,5 +100,5 @@ export function transform(sourceFile: SourceFile) {
       }
     }
   })
-  return sourceFile.getFullText()
+  return { source: sourceFile.getFullText(), packages: installedPackages }
 }
