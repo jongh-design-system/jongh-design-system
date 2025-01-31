@@ -1,6 +1,7 @@
 import { Command } from "commander"
 import fg from "fast-glob"
 import path from "path"
+import { transform } from "./transform"
 export const codemodCommand = new Command()
   .name("radix-ui-import")
   .action(() => {
@@ -9,6 +10,6 @@ export const codemodCommand = new Command()
       dot: false,
     })
     filePaths.forEach((filePath) => {
-      path.join(process.cwd() + filePath)
+      transform(path.join(process.cwd(), filePath))
     })
   })
