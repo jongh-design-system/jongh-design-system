@@ -1,4 +1,4 @@
-import { Project } from "ts-morph"
+import { Project, SyntaxKind } from "ts-morph"
 
 const importMap = {
   "@radix-ui/react-accessible-icon": "AccessibleIcon",
@@ -34,10 +34,16 @@ const importMap = {
   "@radix-ui/react-toolbar": "Toolbar",
   "@radix-ui/react-tooltip": "Tooltip",
   "@radix-ui/react-visually-hidden": "VisuallyHidden",
-} as const
+} as const //기존의 개별 export하던 패키지이름 - 현재 radix-ui에서 export하는 이름
+
+//기존에는 import {} from "@radix-ui/react-visually-hidden" -> 현재는 import {VisuallyHidden} from 'radix-ui'
+
+export default transform
 
 export function transform(path: string) {
-  const project = new Project({})
+  const project = new Project({
+    skipAddingFilesFromTsConfig: true,
+  })
 
   const sourceFile = project.addSourceFileAtPathIfExists(path)
   if (!sourceFile) {
@@ -47,18 +53,50 @@ export function transform(path: string) {
   sourceFile.getImportDeclarations().forEach((importDeclaration) => {
     const moduleName = importDeclaration.getModuleSpecifierValue()
     if (moduleName in importMap) {
-      let newAsName = importMap[moduleName as keyof typeof importMap]
+      let newImportName = importMap[moduleName as keyof typeof importMap]
 
       const namespaceSpecifiers = importDeclaration.getNamespaceImport() //import * as
       if (namespaceSpecifiers) {
         const prevAsName = namespaceSpecifiers.getText()
-        if (newAsName !== prevAsName) {
-          newAsName += ` as ${prevAsName}`
+        if (newImportName !== prevAsName) {
+          newImportName += ` as ${prevAsName}`
         }
         importDeclaration.removeNamespaceImport()
-        importDeclaration.addNamedImport(newAsName)
+        importDeclaration.addNamedImport(newImportName)
+        importDeclaration.setModuleSpecifier("radix-ui")
+        return
       }
-      importDeclaration.setModuleSpecifier("radix-ui")
+      const namedSpecifiers = importDeclaration.getNamedImports() // import {a,b}
+
+      if (namedSpecifiers.length) {
+        const originalImportName = newImportName // 원본 저장
+
+        namedSpecifiers.forEach((namedSpecifier) => {
+          const importName = namedSpecifier.getName()
+          const asName = namedSpecifier.getAliasNode()?.getText()
+          const fullImportName = `${originalImportName}.${importName}`
+          //as 키워드 사용 못함
+          for (const syntaxKind of [
+            SyntaxKind.JsxOpeningElement,
+            SyntaxKind.JsxClosingElement,
+            SyntaxKind.JsxSelfClosingElement,
+          ] as const) {
+            sourceFile.getDescendantsOfKind(syntaxKind).forEach((kind) => {
+              const nodeName = kind.getTagNameNode().getText()
+              if (nodeName === importName) {
+                kind.getTagNameNode().replaceWithText(fullImportName)
+              }
+              if (nodeName === asName) {
+                //as로 사용하고 있는 경우
+                kind.getTagNameNode().replaceWithText(fullImportName)
+              }
+            })
+          }
+        })
+        importDeclaration.removeNamedImports()
+        importDeclaration.addNamedImport(originalImportName)
+        importDeclaration.setModuleSpecifier("radix-ui")
+      }
     }
   })
   sourceFile.saveSync()
