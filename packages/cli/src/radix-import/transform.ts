@@ -1,4 +1,4 @@
-import { Project, SyntaxKind } from "ts-morph"
+import { SyntaxKind, type SourceFile } from "ts-morph"
 
 const importMap = {
   "@radix-ui/react-accessible-icon": "AccessibleIcon",
@@ -38,20 +38,10 @@ const importMap = {
 
 //기존에는 import {} from "@radix-ui/react-visually-hidden" -> 현재는 import {VisuallyHidden} from 'radix-ui'
 
-export default transform
-
-export function transform(path: string) {
-  const project = new Project({
-    skipAddingFilesFromTsConfig: true,
-  })
-
-  const sourceFile = project.addSourceFileAtPathIfExists(path)
-  if (!sourceFile) {
-    return
-  }
-
+export function transform(sourceFile: SourceFile) {
   sourceFile.getImportDeclarations().forEach((importDeclaration) => {
     const moduleName = importDeclaration.getModuleSpecifierValue()
+
     if (moduleName in importMap) {
       let newImportName = importMap[moduleName as keyof typeof importMap]
 
@@ -109,6 +99,5 @@ export function transform(path: string) {
       }
     }
   })
-  sourceFile.saveSync()
   return sourceFile.getFullText()
 }
