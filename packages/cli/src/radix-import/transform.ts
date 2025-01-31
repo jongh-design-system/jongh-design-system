@@ -92,6 +92,16 @@ export function transform(path: string) {
               }
             })
           }
+          sourceFile
+            .getDescendantsOfKind(SyntaxKind.TypeQuery)
+            .forEach((kind) => {
+              kind.getChildren().forEach((v) => {
+                const typeName = v.getText()
+                if (typeName === importName || typeName === asName) {
+                  v.replaceWithText(fullImportName)
+                }
+              })
+            })
         })
         importDeclaration.removeNamedImports()
         importDeclaration.addNamedImport(originalImportName)
