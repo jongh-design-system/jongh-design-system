@@ -73,12 +73,12 @@ export function transform(sourceFile: SourceFile) {
 
     if (namedSpecifiers.length) {
       const originalImportName = componentNameByRadix // 원본 저장
-
       namedSpecifiers.forEach((namedSpecifier) => {
         const importName = namedSpecifier.getName()
         const alias = namedSpecifier.getAliasNode()?.getText()
 
         const fullImportName = `${originalImportName}.${importName}`
+
         //as 키워드 사용 못함
         for (const syntaxKind of [
           SyntaxKind.JsxOpeningElement,
@@ -129,19 +129,26 @@ export function transform(sourceFile: SourceFile) {
             if (!initializer) {
               return
             }
-            if (initializer.asKind(SyntaxKind.PropertyAccessExpression)) {
-              initializer.getChildren().forEach((child) => {
-                const target = child.getText()
-                if (shouldReplace(target, importName, alias)) {
-                  child.replaceWithText(fullImportName)
-                }
-              })
-            }
-            if (initializer.asKind(SyntaxKind.Identifier)) {
-              if (shouldReplace(initializer.getText(), importName, alias)) {
-                initializer.replaceWithText(fullImportName)
+
+            initializer.getChildren().forEach((v) => {
+              const target = v.getText()
+              if (shouldReplace(target, importName, alias)) {
+                v.replaceWithText(fullImportName)
               }
-            }
+            })
+            // if (initializer.asKind(SyntaxKind.PropertyAccessExpression)) {
+            //   initializer.getChildren().forEach((child) => {
+            //     const target = child.getText()
+            //     if (shouldReplace(target, importName, alias)) {
+            //       child.replaceWithText(fullImportName)
+            //     }
+            //   })
+            // }
+            // if (initializer.asKind(SyntaxKind.Identifier)) {
+            //   if (shouldReplace(initializer.getText(), importName, alias)) {
+            //     initializer.replaceWithText(fullImportName)
+            //   }
+            // }
           })
       })
       importDeclaration.replaceWithText(radixImportFormat(originalImportName))
