@@ -83,6 +83,7 @@ export function transform(sourceFile: SourceFile) {
               }
             })
           }
+          //type
           sourceFile
             .getDescendantsOfKind(SyntaxKind.TypeQuery)
             .forEach((kind) => {
@@ -91,6 +92,24 @@ export function transform(sourceFile: SourceFile) {
                 if (typeName === importName || typeName === asName) {
                   v.replaceWithText(fullImportName)
                 }
+              })
+            })
+          //Expression statement
+          sourceFile
+            .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+            .forEach((kind) => {
+              const children = kind.getChildrenOfKind(
+                SyntaxKind.BinaryExpression, //a=b
+              )
+
+              children.forEach((child) => {
+                const rightNode = child.getRight()
+                rightNode.getChildren().forEach((v) => {
+                  const variableName = v.getText()
+                  if (variableName === importName || variableName === asName) {
+                    v.replaceWithText(fullImportName)
+                  }
+                })
               })
             })
         })
