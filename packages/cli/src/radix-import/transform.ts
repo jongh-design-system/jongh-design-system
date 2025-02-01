@@ -112,6 +112,33 @@ export function transform(sourceFile: SourceFile) {
                 })
               })
             })
+
+          sourceFile
+            .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+            .forEach((kind) => {
+              const initializer = kind.getInitializer()
+              if (!initializer) {
+                return
+              }
+              if (initializer.asKind(SyntaxKind.PropertyAccessExpression)) {
+                initializer.getChildren().forEach((child) => {
+                  if (
+                    child.getText() === importName ||
+                    child.getText() === asName
+                  ) {
+                    child.replaceWithText(fullImportName)
+                  }
+                })
+              }
+              if (initializer.asKind(SyntaxKind.Identifier)) {
+                if (
+                  initializer.getText() === importName ||
+                  initializer.getText() === asName
+                ) {
+                  initializer.replaceWithText(fullImportName)
+                }
+              }
+            })
         })
         importDeclaration.removeNamedImports()
         importDeclaration.addNamedImport(originalImportName)
@@ -121,3 +148,4 @@ export function transform(sourceFile: SourceFile) {
   })
   return { source: sourceFile.getFullText(), packages: installedPackages }
 }
+//a.b -> PropertyAccessExpression
