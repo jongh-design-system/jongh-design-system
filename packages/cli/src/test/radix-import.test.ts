@@ -18,7 +18,29 @@ describe("radix-import", () => {
     )
 
     const project = new Project()
-    const sourceFile = project.createSourceFile("test.tsx", input, {
+    const sourceFile = project.createSourceFile("test.namespace.tsx", input, {
+      overwrite: true,
+    })
+
+    transform(sourceFile)
+
+    expect(sourceFile.getFullText().replace(/\s+/g, "")).toBe(
+      output.replace(/\s+/g, ""),
+    )
+  })
+
+  test("named import test", () => {
+    const input = fs.readFileSync(
+      path.join(__dirname, "./fixture/named_input.tsx"),
+      "utf-8",
+    )
+    const output = fs.readFileSync(
+      path.join(__dirname, "./fixture/named_output.tsx"),
+      "utf-8",
+    )
+
+    const project = new Project()
+    const sourceFile = project.createSourceFile("test.named.tsx", input, {
       overwrite: true,
     })
 
