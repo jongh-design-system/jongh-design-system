@@ -36,116 +36,116 @@ const importMap = {
   "@radix-ui/react-visually-hidden": "VisuallyHidden",
 } as const //기존의 개별 export하던 패키지이름 - 현재 radix-ui에서 export하는 이름
 
-//기존에는 import {} from "@radix-ui/react-visually-hidden" -> 현재는 import {VisuallyHidden} from 'radix-ui'
+export function shouldReplace(
+  target: string,
+  importName: string,
+  alias?: string,
+) {
+  return alias ? target === alias : target === importName
+}
+
+export function radixImportFormat(specifier: string) {
+  return `import {${specifier}} from "radix-ui"`
+}
 
 export function transform(sourceFile: SourceFile) {
   const installedPackages: string[] = []
   sourceFile.getImportDeclarations().forEach((importDeclaration) => {
     const moduleName = importDeclaration.getModuleSpecifierValue()
+    if (moduleName in importMap === false) {
+      return
+    }
 
-    if (moduleName in importMap) {
-      let newImportName = importMap[moduleName as keyof typeof importMap]
-      installedPackages.push(moduleName)
-      const namespaceSpecifiers = importDeclaration.getNamespaceImport() //import * as
-      if (namespaceSpecifiers) {
-        const prevAsName = namespaceSpecifiers.getText()
-        if (newImportName !== prevAsName) {
-          newImportName += ` as ${prevAsName}`
-        }
-        importDeclaration.removeNamespaceImport()
-        importDeclaration.addNamedImport(newImportName)
-        importDeclaration.setModuleSpecifier("radix-ui")
-        return
+    let componentNameByRadix = importMap[moduleName as keyof typeof importMap]
+    installedPackages.push(moduleName)
+
+    const namespaceIdentifier = importDeclaration.getNamespaceImport() //import * as
+    if (namespaceIdentifier) {
+      const alias = namespaceIdentifier.getText()
+      if (componentNameByRadix !== alias) {
+        componentNameByRadix += ` as ${alias}`
       }
-      const namedSpecifiers = importDeclaration.getNamedImports() // import {a,b}
+      importDeclaration.replaceWithText(radixImportFormat(componentNameByRadix))
+      return
+    }
 
-      if (namedSpecifiers.length) {
-        const originalImportName = newImportName // 원본 저장
+    const namedSpecifiers = importDeclaration.getNamedImports() // import {a,b}
 
-        namedSpecifiers.forEach((namedSpecifier) => {
-          const importName = namedSpecifier.getName()
-          const asName = namedSpecifier.getAliasNode()?.getText()
-          const fullImportName = `${originalImportName}.${importName}`
-          //as 키워드 사용 못함
-          for (const syntaxKind of [
-            SyntaxKind.JsxOpeningElement,
-            SyntaxKind.JsxClosingElement,
-            SyntaxKind.JsxSelfClosingElement,
-          ] as const) {
-            sourceFile.getDescendantsOfKind(syntaxKind).forEach((kind) => {
-              const nodeName = kind.getTagNameNode().getText()
-              if (nodeName === importName) {
-                kind.getTagNameNode().replaceWithText(fullImportName)
-              }
-              if (nodeName === asName) {
-                //as로 사용하고 있는 경우
-                kind.getTagNameNode().replaceWithText(fullImportName)
+    if (namedSpecifiers.length) {
+      const originalImportName = componentNameByRadix // 원본 저장
+
+      namedSpecifiers.forEach((namedSpecifier) => {
+        const importName = namedSpecifier.getName()
+        const alias = namedSpecifier.getAliasNode()?.getText()
+
+        const fullImportName = `${originalImportName}.${importName}`
+        //as 키워드 사용 못함
+        for (const syntaxKind of [
+          SyntaxKind.JsxOpeningElement,
+          SyntaxKind.JsxClosingElement,
+          SyntaxKind.JsxSelfClosingElement,
+        ] as const) {
+          sourceFile.getDescendantsOfKind(syntaxKind).forEach((kind) => {
+            const target = kind.getTagNameNode().getText()
+            if (shouldReplace(target, importName, alias)) {
+              kind.getTagNameNode().replaceWithText(fullImportName)
+            }
+          })
+        }
+        //type
+        sourceFile
+          .getDescendantsOfKind(SyntaxKind.TypeQuery)
+          .forEach((kind) => {
+            kind.getChildren().forEach((v) => {
+              const target = v.getText()
+              if (shouldReplace(target, importName, alias)) {
+                v.replaceWithText(fullImportName)
               }
             })
-          }
-          //type
-          sourceFile
-            .getDescendantsOfKind(SyntaxKind.TypeQuery)
-            .forEach((kind) => {
-              kind.getChildren().forEach((v) => {
-                const typeName = v.getText()
-                if (typeName === importName || typeName === asName) {
+          })
+        //Expression statement
+        sourceFile
+          .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+          .forEach((kind) => {
+            const children = kind.getChildrenOfKind(
+              SyntaxKind.BinaryExpression, //a=b
+            )
+
+            children.forEach((child) => {
+              const rightNode = child.getRight()
+              rightNode.getChildren().forEach((v) => {
+                const target = v.getText()
+                if (shouldReplace(target, importName, alias)) {
                   v.replaceWithText(fullImportName)
                 }
               })
             })
-          //Expression statement
-          sourceFile
-            .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
-            .forEach((kind) => {
-              const children = kind.getChildrenOfKind(
-                SyntaxKind.BinaryExpression, //a=b
-              )
+          })
 
-              children.forEach((child) => {
-                const rightNode = child.getRight()
-                rightNode.getChildren().forEach((v) => {
-                  const variableName = v.getText()
-                  if (variableName === importName || variableName === asName) {
-                    v.replaceWithText(fullImportName)
-                  }
-                })
-              })
-            })
-
-          sourceFile
-            .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-            .forEach((kind) => {
-              const initializer = kind.getInitializer()
-              if (!initializer) {
-                return
-              }
-              if (initializer.asKind(SyntaxKind.PropertyAccessExpression)) {
-                initializer.getChildren().forEach((child) => {
-                  if (
-                    child.getText() === importName ||
-                    child.getText() === asName
-                  ) {
-                    child.replaceWithText(fullImportName)
-                  }
-                })
-              }
-              if (initializer.asKind(SyntaxKind.Identifier)) {
-                if (
-                  initializer.getText() === importName ||
-                  initializer.getText() === asName
-                ) {
-                  initializer.replaceWithText(fullImportName)
+        sourceFile
+          .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+          .forEach((kind) => {
+            const initializer = kind.getInitializer()
+            if (!initializer) {
+              return
+            }
+            if (initializer.asKind(SyntaxKind.PropertyAccessExpression)) {
+              initializer.getChildren().forEach((child) => {
+                const target = child.getText()
+                if (shouldReplace(target, importName, alias)) {
+                  child.replaceWithText(fullImportName)
                 }
+              })
+            }
+            if (initializer.asKind(SyntaxKind.Identifier)) {
+              if (shouldReplace(initializer.getText(), importName, alias)) {
+                initializer.replaceWithText(fullImportName)
               }
-            })
-        })
-        importDeclaration.removeNamedImports()
-        importDeclaration.addNamedImport(originalImportName)
-        importDeclaration.setModuleSpecifier("radix-ui")
-      }
+            }
+          })
+      })
+      importDeclaration.replaceWithText(radixImportFormat(originalImportName))
     }
   })
   return { source: sourceFile.getFullText(), packages: installedPackages }
 }
-//a.b -> PropertyAccessExpression
