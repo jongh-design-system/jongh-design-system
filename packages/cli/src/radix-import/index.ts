@@ -24,7 +24,7 @@ export const codemodCommand = new Command()
       }
       try {
         const { packages } = transform(sourceFile)
-        msg += packages.join(" ")
+        msg += packages.join("  ")
         sourceFile.save()
       } catch (e) {
         log.error(`failed to transform ${filePath} ${e}`)
@@ -33,7 +33,7 @@ export const codemodCommand = new Command()
     if (!msg.length) {
       outro("no transform occured")
     } else {
-      ;`copy this to delete and install new package\n <your package manager's delete command> ${chalk.bgBlue(msg)} \n <your package manager's install command> ${chalk.bgGreen("radix-ui")}`
+      ;`copy this to delete and install new package\n <your package manager's delete command> ${msg} \n <your package manager's install command> ${chalk.bgGreen("radix-ui")}`
         .split("\n")
         .forEach(log.step)
     }
