@@ -1,10 +1,4 @@
 import { definePreset, defineSemanticTokens, defineTokens } from "@pandacss/dev"
-import { buttonRecipe } from "./src/component/button/ui/recipe"
-import { accordionRecipe } from "./src/component/accordion/ui/recipe"
-import { tabsRecipe } from "./src/component/tabs/ui/recipe"
-import { sliderRecipe } from "./src/component/slider/ui/recipe"
-import { selectRecipe } from "./src/component/select/ui/recipe"
-import { avatarRecipe } from "./src/component/avatar/ui/recipe"
 
 const radii = defineTokens.radii({
   radius: { value: "0.5rem" },
@@ -118,14 +112,6 @@ export const defaultPreset = definePreset({
         colors: semanticColors,
         radii: radius,
         borders: borders,
-      },
-      recipes: {
-        button: buttonRecipe,
-        accordion: accordionRecipe,
-        tabs: tabsRecipe,
-        slider: sliderRecipe,
-        select: selectRecipe,
-        avatar: avatarRecipe,
       },
     },
   },
