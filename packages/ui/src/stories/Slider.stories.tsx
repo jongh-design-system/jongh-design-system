@@ -13,7 +13,7 @@ export const Primary: Story = {
   render: () => {
     return (
       <div>
-        <Slider.Root defaultValue={[50, 100]} max={100} step={2} w="20">
+        <Slider.Root defaultValue={[50, 100]} max={100} step={2}>
           <Slider.Track>
             <Slider.Range />
           </Slider.Track>
