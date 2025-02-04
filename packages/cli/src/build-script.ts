@@ -136,7 +136,7 @@ export async function createPresetFile() {
   const fileContent = {
     name: "preset.ts",
     dependencies: [],
-    content: JSON.stringify(content),
+    file: JSON.stringify(content),
   }
   fs.writeFile(
     path.join(TARGET_PATH, "preset.json"),
