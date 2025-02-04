@@ -1,4 +1,16 @@
-import { definePreset, defineSemanticTokens, defineTokens } from "@pandacss/dev"
+import {
+  defineGlobalStyles,
+  definePreset,
+  defineSemanticTokens,
+  defineTokens,
+} from "@pandacss/dev"
+
+const globalCss = defineGlobalStyles({
+  "html, body": {
+    w: "full",
+    h: "full",
+  },
+})
 
 const radii = defineTokens.radii({
   radius: { value: "0.5rem" },
@@ -103,6 +115,7 @@ export const radius = defineSemanticTokens.radii({
 
 export const defaultPreset = definePreset({
   name: "default",
+  globalCss,
   theme: {
     extend: {
       tokens: {
