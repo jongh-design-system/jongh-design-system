@@ -1,7 +1,7 @@
 import { ErrorMap } from "../../common/error"
 import { presetSchema } from "../../common/types"
 
-const BASE_URL = "http://localhost:3000"
+const BASE_URL = "https://whdgur.shop"
 
 export async function fetchPreset() {
   const response = await fetch(`${BASE_URL}/preset.json`)
