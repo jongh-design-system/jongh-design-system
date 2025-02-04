@@ -12,6 +12,7 @@ import { Command } from "commander"
 import fs from "fs-extra"
 import { spinner } from "@clack/prompts"
 import { Project, SyntaxKind, type ObjectLiteralExpression } from "ts-morph"
+import { fetchPreset } from "../common/utils/fetchRegistry"
 
 const initSchema = z.object({
   cwd: z.string(),
@@ -106,7 +107,9 @@ export async function init(options: z.infer<typeof initSchema>) {
 
   configSchema.schema.parse(config)
 
-  //TODO: preset.ts파일 제공 - 배포 먼저 진행되어야할것같음
+  const preset = await fetchPreset()
+
+  fs.writeFile(path.join(root, preset.name), JSON.parse(preset.file))
 
   //modify panda.config.ts
   modifyPandaConfig(path.resolve(root, pandacssConfigPath))
