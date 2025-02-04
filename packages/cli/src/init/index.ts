@@ -106,24 +106,38 @@ export async function init(options: z.infer<typeof initSchema>) {
 
   configSchema.schema.parse(config)
 
-  const project = new Project()
-  const sourceFile = project.addSourceFileAtPath(
-    path.resolve(root, pandacssConfigPath),
-  )
-
   //TODO: preset.ts파일 제공 - 배포 먼저 진행되어야할것같음
 
   //modify panda.config.ts
-  sourceFile.addImportDeclaration({
-    namedImports: [{ name: "preset" }],
-    moduleSpecifier: "panda-animation",
-  })
+  modifyPandaConfig(path.resolve(root, pandacssConfigPath))
 
-  sourceFile.addImportDeclaration({
-    namedImports: [{ name: "defaultPreset" }],
-    moduleSpecifier: "./preset",
-  })
+  await fs.writeFile(
+    path.resolve(root, "components.json"),
+    JSON.stringify(config),
+    "utf-8",
+  )
 
+  return config
+}
+
+function modifyPandaConfig(path: string) {
+  const project = new Project()
+  const sourceFile = project.addSourceFileAtPath(path)
+
+  const importToIncludes = [
+    {
+      namedImports: [{ name: "preset" }],
+      moduleSpecifier: "panda-animation",
+    },
+    {
+      namedImports: [{ name: "defaultPreset" }],
+      moduleSpecifier: "./preset",
+    },
+  ]
+
+  sourceFile.addImportDeclarations(importToIncludes)
+
+  //export defineConfig() 형식으로 사용한 경우에만 가능
   const defineConfigCall = sourceFile.getFirstDescendantByKind(
     SyntaxKind.CallExpression,
   )
@@ -147,14 +161,8 @@ export async function init(options: z.infer<typeof initSchema>) {
     // 변경사항 저장
     sourceFile.saveSync()
   } else {
-    console.warn("Could not find config object in panda.config.ts")
+    console.warn(
+      "Could not modify panda.config.ts. add presets : [preset(), @pandacss/preset-panda, defaultPreset] in your panda.config",
+    )
   }
-
-  await fs.writeFile(
-    path.resolve(root, "components.json"),
-    JSON.stringify(config),
-    "utf-8",
-  )
-
-  return config
 }
