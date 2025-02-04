@@ -5,7 +5,8 @@ import type { ComponentProps } from "react"
 export default {
   title: "Button",
   tags: ["autodocs"],
-} satisfies Meta<typeof Button>
+  component: Button,
+} as Meta<typeof Button>
 
 type Story = StoryObj<ComponentProps<typeof Button>>
 
