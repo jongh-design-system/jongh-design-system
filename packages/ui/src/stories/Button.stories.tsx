@@ -13,6 +13,7 @@ type Story = StoryObj<ComponentProps<typeof Button>>
 export const Primary: Story = {
   args: {
     children: "click",
+    onClick: fn(),
   },
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
