@@ -23,18 +23,11 @@ jobs:
       - name: build
         run: pnpm turbo build
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy to AWS
+
+        uses: ./.github/actions/deploy
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-session-name: "deploy"
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to S3
-        run: aws s3 sync ./app/docs/out s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
-
-      - name: Invalidate CloudFront Cache
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{secrets.AWS_CLOUDFRONT_ID}} \
-            --paths "/*"
+          aws_role_to_assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_s3_bucket_name: ${{ secrets.AWS_S3_BUCKET_NAME }}
+          aws_cloudfront_id: ${{ secrets.AWS_CLOUDFRONT_ID }}
