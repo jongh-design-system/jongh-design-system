@@ -23,9 +23,9 @@ jobs:
       - name: build
         run: pnpm turbo build
 
-      - name: Deploy to AWS
-
+      - name: deploy to AWS
         uses: ./.github/actions/deploy
+        if: contains(github.event.head_commit.message,'app/docs')
         with:
           aws_role_to_assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws_region: ${{ secrets.AWS_REGION }}
